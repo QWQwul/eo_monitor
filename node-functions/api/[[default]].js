@@ -4,6 +4,7 @@ import fs from 'fs';
 import 'dotenv/config';
 // import { fileURLToPath } from 'url';
 import { teo } from "tencentcloud-sdk-nodejs-teo";
+import { CommonClient } from "tencentcloud-sdk-nodejs-common";
 
 // const __filename = fileURLToPath(import.meta.url);
 // const __dirname = path.dirname(__filename);
@@ -82,6 +83,13 @@ const TOP_ANALYSIS_METRICS = [
     'l7Flow_request_ua'
 ];
 
+// Metrics that belong to DescribeWebProtectionData (DDoS/Security)
+const SECURITY_METRICS = [
+    'ccAcl_interceptNum',
+    'ccManage_interceptNum',
+    'ccRate_interceptNum'
+];
+
 app.get('/config', (req, res) => {
     res.json({
         siteName: process.env.SITE_NAME || 'AcoFork 的 EdgeOne 监控大屏'
@@ -139,6 +147,38 @@ app.get('/traffic', async (req, res) => {
             };
             console.log("Calling DescribeTopL7AnalysisData with params:", JSON.stringify(params, null, 2));
             data = await client.DescribeTopL7AnalysisData(params);
+        } else if (SECURITY_METRICS.includes(metric)) {
+            // API: DescribeWebProtectionData (DDoS) using CommonClient
+            params = {
+                "StartTime": startTime,
+                "EndTime": endTime,
+                "MetricNames": [ metric ],
+                "ZoneIds": [ "*" ]
+            };
+            
+            // CommonClient setup
+            const commonClientConfig = {
+                credential: {
+                    secretId: secretId,
+                    secretKey: secretKey,
+                },
+                region: "",
+                profile: {
+                    httpProfile: {
+                        endpoint: "teo.tencentcloudapi.com",
+                    },
+                },
+            };
+
+            const commonClient = new CommonClient(
+                "teo.tencentcloudapi.com",
+                "2022-09-01",
+                commonClientConfig
+            );
+
+            console.log("Calling DescribeWebProtectionData with params:", JSON.stringify(params, null, 2));
+            data = await commonClient.request("DescribeWebProtectionData", params);
+            
         } else {
             // API: DescribeTimingL7AnalysisData OR DescribeTimingL7OriginPullData
             params = {

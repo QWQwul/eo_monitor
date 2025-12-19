@@ -284,7 +284,7 @@
                     </div>
                 </div>
                 <!-- Origin Bandwidth Cards -->
-                <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
+                <div class="grid gap-4 md:grid-cols-3 lg:grid-cols-3">
                     <!-- Origin In Flux -->
                     <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
                         <div class="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
@@ -303,6 +303,16 @@
                         <div class="p-6 pt-0">
                             <div class="text-2xl font-bold" id="kpi_l7Flow_inBandwidth_hy">加载中...</div>
                             <p class="text-xs text-muted-foreground mt-1">源站至 EdgeOne 节点</p>
+                        </div>
+                    </div>
+                    <!-- Cache Hit Rate -->
+                    <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                        <div class="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
+                            <h3 class="tracking-tight text-sm font-medium text-muted-foreground">缓存命中率</h3>
+                        </div>
+                        <div class="p-6 pt-0">
+                            <div class="text-2xl font-bold" id="kpi_cache_hit_rate">加载中...</div>
+                            <p class="text-xs text-muted-foreground mt-1">1 - (源站响应 / EdgeOne 响应)</p>
                         </div>
                     </div>
                 </div>
@@ -378,7 +388,36 @@
                 </div>
             </div>
 
-            <!-- Section 5: Top Analysis (TOP 分析) -->
+            <!-- Section 5: Security Analysis (安全分析) -->
+            <div class="space-y-4">
+                <h2 class="text-xl font-bold tracking-tight text-slate-800 flex items-center gap-2">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    安全分析 (Security Analysis)
+                </h2>
+                <div class="grid gap-4 md:grid-cols-3 lg:grid-cols-3">
+                    <!-- Total Protection Hits -->
+                    <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                        <div class="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
+                            <h3 class="tracking-tight text-sm font-medium text-muted-foreground">总防护命中次数</h3>
+                        </div>
+                        <div class="p-6 pt-0">
+                            <div class="text-2xl font-bold" id="kpi_security_hits">加载中...</div>
+                            <p class="text-xs text-muted-foreground mt-1">DDoS/CC 防护总拦截次数</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Security Chart -->
+                <div class="rounded-xl border bg-card text-card-foreground shadow-sm">
+                    <div class="flex flex-col space-y-1.5 p-6">
+                        <h3 class="font-semibold leading-none tracking-tight">安全防护趋势</h3>
+                    </div>
+                    <div class="p-6 pt-0">
+                        <div id="chart_security" class="w-full h-[350px]"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 6: Top Analysis (TOP 分析) -->
             <div class="space-y-4">
                 <h2 class="text-xl font-bold tracking-tight text-slate-800 flex items-center gap-2">
                     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
@@ -624,6 +663,7 @@
         let chartBandwidth = null;
         let chartRequests = null;
         let chartPerformance = null;
+        let chartSecurity = null;
         let chartOriginPull = null;
         let chartTopCountry = null;
         let chartTopProvince = null;
@@ -712,6 +752,7 @@
             originPull: ['l7Flow_outFlux_hy', 'l7Flow_inFlux_hy', 'l7Flow_outBandwidth_hy', 'l7Flow_inBandwidth_hy', 'l7Flow_request_hy'],
             requests: ['l7Flow_request'],
             performance: ['l7Flow_avgResponseTime', 'l7Flow_avgFirstByteResponseTime'],
+            security: ['ccAcl_interceptNum', 'ccManage_interceptNum', 'ccRate_interceptNum'],
             topAnalysis: ['l7Flow_outFlux_country', 'l7Flow_outFlux_province', 'l7Flow_outFlux_statusCode', 'l7Flow_outFlux_domain', 'l7Flow_outFlux_url', 'l7Flow_outFlux_resourceType', 'l7Flow_outFlux_sip', 'l7Flow_outFlux_referers', 'l7Flow_outFlux_ua_device', 'l7Flow_outFlux_ua_browser', 'l7Flow_outFlux_ua_os', 'l7Flow_outFlux_ua', 'l7Flow_request_country', 'l7Flow_request_province', 'l7Flow_request_statusCode', 'l7Flow_request_domain', 'l7Flow_request_url', 'l7Flow_request_resourceType', 'l7Flow_request_sip', 'l7Flow_request_referers', 'l7Flow_request_ua_device', 'l7Flow_request_ua_browser', 'l7Flow_request_ua_os', 'l7Flow_request_ua']
         };
 
@@ -730,6 +771,9 @@
             'l7Flow_request': '请求数',
             'l7Flow_avgResponseTime': '平均响应耗时',
             'l7Flow_avgFirstByteResponseTime': '平均首字节耗时',
+            'ccAcl_interceptNum': '精确防护拦截',
+            'ccManage_interceptNum': '托管规则拦截',
+            'ccRate_interceptNum': '速率限制拦截',
             'l7Flow_outFlux_country': '国家/地区流量',
             'l7Flow_outFlux_province': '国内省份流量',
             'l7Flow_outFlux_statusCode': '状态码流量',
@@ -771,6 +815,9 @@
             'l7Flow_request': '#f43f5e', // rose
             'l7Flow_avgResponseTime': '#ef4444', // red
             'l7Flow_avgFirstByteResponseTime': '#f97316', // orange
+            'ccAcl_interceptNum': '#ef4444', // red
+            'ccManage_interceptNum': '#f59e0b', // amber
+            'ccRate_interceptNum': '#3b82f6', // blue
             'l7Flow_outFlux_country': '#3b82f6', // blue
             'l7Flow_outFlux_province': '#f59e0b', // amber
             'l7Flow_outFlux_statusCode': '#8b5cf6', // purple
@@ -867,7 +914,12 @@
             const dataList = result?.Data || result?.TimingDataRecords || [];
             if (dataList.length === 0) return { timeData: [], valueData: [], sum: 0, max: 0, avg: 0, type: 'time' };
 
-            const typeValue = dataList[0]?.TypeValue?.[0];
+            let typeValue = dataList[0]?.TypeValue?.[0];
+            // Support DescribeWebProtectionData structure (Value instead of TypeValue)
+            if (!typeValue && dataList[0]?.Value?.[0]) {
+                typeValue = dataList[0].Value[0];
+            }
+
             const details = typeValue?.Detail || [];
             const sum = typeValue?.Sum || 0;
             const max = typeValue?.Max || 0;
@@ -975,6 +1027,7 @@
             chartBandwidth = echarts.init(document.getElementById('chart_bandwidth'));
             chartRequests = echarts.init(document.getElementById('chart_requests'));
             chartPerformance = echarts.init(document.getElementById('chart_performance'));
+            chartSecurity = echarts.init(document.getElementById('chart_security'));
             chartOriginPull = echarts.init(document.getElementById('chart_origin_pull'));
             chartTopCountry = echarts.init(document.getElementById('chart_top_country'));
             chartTopProvince = echarts.init(document.getElementById('chart_top_province'));
@@ -1015,6 +1068,7 @@
                 ...metricsConfig.originPull,
                 ...metricsConfig.requests,
                 ...metricsConfig.performance,
+                ...metricsConfig.security,
                 ...metricsConfig.topAnalysis
             ];
 
@@ -1033,6 +1087,7 @@
             updateOriginPullSection(results); //3.
             updateRequestsSection(results); //4.
             updatePerformanceSection(results); //5.
+            updateSecuritySection(results); //5.1
             updateTopAnalysisSection(results); //6.
         }
 
@@ -1284,6 +1339,23 @@
                 series: series
             };
             chartOriginPull.setOption(option);
+
+            // Calculate Cache Hit Rate
+            // Formula: 1 - (Origin Response Flux / EdgeOne Response Flux)
+            const originFluxData = results['l7Flow_inFlux_hy']; // Origin Response
+            const edgeFluxData = results['l7Flow_outFlux']; // EdgeOne Response
+
+            let hitRate = 0;
+            if (originFluxData && edgeFluxData && edgeFluxData.sum > 0) {
+                hitRate = 1 - (originFluxData.sum / edgeFluxData.sum);
+            }
+            // Clamp hitRate if necessary (e.g. if origin > edge due to compression diffs, it might be negative, but let's show real value or clamp?)
+            // Usually hit rate is 0-1.
+            
+            const hitRateEl = document.getElementById('kpi_cache_hit_rate');
+            if (hitRateEl) {
+                hitRateEl.innerText = (hitRate * 100).toFixed(2) + '%';
+            }
         }
 
         //4.有使用
@@ -1383,6 +1455,54 @@
                 series: series
             };
             chartPerformance.setOption(option);
+        }
+
+        //5.1. Security Section
+        function updateSecuritySection(results) {
+            const metrics = metricsConfig.security;
+            const series = [];
+            let timeData = [];
+            let totalHits = 0;
+
+            metrics.forEach(metric => {
+                const data = results[metric];
+                if (!data || data.type !== 'time') return;
+                
+                totalHits += data.sum;
+
+                if (timeData.length === 0) timeData = data.timeData;
+
+                series.push({
+                    name: metricLabels[metric],
+                    type: 'line',
+                    smooth: true,
+                    stack: 'Total', // Stacked area chart
+                    areaStyle: {},
+                    emphasis: { focus: 'series' },
+                    data: data.valueData,
+                    itemStyle: { color: metricColors[metric] }
+                });
+            });
+
+            // Update KPI
+            const kpiEl = document.getElementById('kpi_security_hits');
+            if (kpiEl) {
+                const formatted = formatCount(totalHits);
+                kpiEl.innerText = formatted;
+            }
+
+            const option = {
+                tooltip: { 
+                    trigger: 'axis', 
+                    axisPointer: { type: 'cross', label: { backgroundColor: '#6a7985' } }
+                },
+                legend: { data: metrics.map(m => metricLabels[m]), bottom: 0 },
+                grid: { left: '3%', right: '4%', bottom: '10%', top: '15%', containLabel: true },
+                xAxis: { type: 'category', boundaryGap: false, data: timeData },
+                yAxis: { type: 'value' },
+                series: series
+            };
+            chartSecurity.setOption(option);
         }
 
         //通用处理
