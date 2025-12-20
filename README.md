@@ -32,6 +32,7 @@
    - `SECRET_ID`: 您的腾讯云 SecretId
    - `SECRET_KEY`: 您的腾讯云 SecretKey
    - `SITE_NAME`: (可选) 自定义大屏标题，默认为 "AcoFork 的 EdgeOne 监控大屏"
+   - `SITE_ICON`: (可选) 自定义网页图标，默认为 "https://q2.qlogo.cn/headimg_dl?dst_uin=2726730791&spec=0"
 5. 部署项目。
 
 ### 方式二：本地运行 / Node.js 环境
